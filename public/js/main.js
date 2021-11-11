@@ -49,7 +49,7 @@ navigator.mediaDevices.getUserMedia(constraints).then(stream => {
 
     localVideo.srcObject = stream;
     localStream = stream;
-
+    console.log(stream)
     init()
 
 }).catch(e => alert(`getusermedia error ${e.name}`))
