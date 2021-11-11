@@ -16,11 +16,8 @@ let peers = {}
 //     location.href = 'http' + location.href.substr(4, location.href.length - 4)
 
 
-//////////// CONFIGURATION //////////////////
 
-/**
- * RTCPeerConnection configuration 
- */
+// Máy chủ STUN giúp cho các peer có thể lấy được địa chỉ của peer khác
 const configuration = {
     "iceServers": [{
             "urls": "stun:stun.l.google.com:19302"
@@ -45,11 +42,8 @@ let constraints = {
 
 /////////////////////////////////////////////////////////
 
-// constraints.video.facingMode = {
-//     ideal: "user"
-// }
 
-// enabling the camera at startup
+// tạo luồng stream
 navigator.mediaDevices.getUserMedia(constraints).then(stream => {
     console.log('Received local stream');
 
@@ -60,41 +54,49 @@ navigator.mediaDevices.getUserMedia(constraints).then(stream => {
 
 }).catch(e => alert(`getusermedia error ${e.name}`))
 
-/**
- * initialize the socket connections
- */
+// khởi tạo
 function init() {
     socket = io()
 
 
     //Gửi và nhận dữ liệu
+
+    // nhận một peer mới và thêm vào danh sách ở client
+    // khi nhận dữ liệu
     socket.on('initReceive', socket_id => {
         console.log('INIT RECEIVE ' + socket_id)
         addPeer(socket_id, false)
-
+        // tạo sự kiện gửi dữ liệu
         socket.emit('initSend', socket_id)
     })
 
+    //Khi gửi dữ liệu
     socket.on('initSend', socket_id => {
         console.log('INIT SEND ' + socket_id)
+        // thêm vào mảng
         addPeer(socket_id, true)
     })
     // 
 
-    
+    //Khi một peer khác ngắt kết nối
     socket.on('removePeer', socket_id => {
         console.log('removing peer ' + socket_id)
+        // xóa peer khỏi mảng
         removePeer(socket_id)
     })
 
+    // khi peer ngắt kết nối
     socket.on('disconnect', () => {
         console.log('GOT DISCONNECTED')
+        // xóa hết danh sách
         for (let socket_id in peers) {
             removePeer(socket_id)
         }
     })
 
+    //khi có tín hiệu data
     socket.on('signal', data => {
+        // gắn luồng tín hiệu tương ứng với từng peer
         peers[data.socket_id].signal(data.signal)
     })
 }
@@ -122,28 +124,24 @@ function removePeer(socket_id) {
     delete peers[socket_id]
 }
 
-/**
- * Creates a new peer connection and sets the event listeners
- * @param {String} socket_id 
- *                 ID of the peer
- * @param {Boolean} am_initiator 
- *                  Set to true if the peer initiates the connection process.
- *                  Set to false if the peer receives the connection. 
- */
+// thêm peer vào danh sách
 function addPeer(socket_id, am_initiator) {
+
+    // khởi tạo peer
     peers[socket_id] = new SimplePeer({
         initiator: am_initiator,
         stream: localStream,
         config: configuration
     })
 
+    // khi peer có data sẽ gửi data lên server
     peers[socket_id].on('signal', data => {
         socket.emit('signal', {
             signal: data,
             socket_id: socket_id
         })
     })
-
+    //phát luồng video remote khi nhận một luồn video mới
     peers[socket_id].on('stream', stream => {
         let newVid = document.createElement('video')
         newVid.srcObject = stream

@@ -3,26 +3,27 @@ peers = {}
 
 
 module.exports = (io) => {
+    // khi có kết nối mới
     io.on('connect', (socket) => {
 
         //gửi và nhận
         console.log('a client is connected')
 
 
-        // Initiate the connection process as soon as the client connects
+        // thêm peer mới vòa danh sách
 
         peers[socket.id] = socket
 
-        // Asking all other clients to setup the peer connection receiver
+        // Duyệt danh sách peer hiện thời để gửi luồng stream của peer mới lên
         for(let id in peers) {
             if(id === socket.id) continue
             console.log('sending init receive to ' + socket.id)
+            // gửi socket id của peer mới tới tất cả các peer cũ
             peers[id].emit('initReceive', socket.id)
         }
         // 
-        /**
-         * relay a peerconnection signal to a specific socket
-         */
+       
+        // chuyển tín hiệu tới peer cụ thể
         socket.on('signal', data => {
             console.log('sending signal from ' + socket.id + ' to ', data)
             if(!peers[data.socket_id])return
@@ -32,9 +33,7 @@ module.exports = (io) => {
             })
         })
 
-        /**
-         * remove the disconnected peer connection from all other connected clients
-         */
+        //khi một peer ngắt kết nối, xóa peer đó ra khỏi toàn bộ danh sách các peer kết nối khác và trên server
         socket.on('disconnect', () => {
             console.log('socket disconnected ' + socket.id)
             socket.broadcast.emit('removePeer', socket.id)
@@ -42,8 +41,8 @@ module.exports = (io) => {
         })
 
         /**
-         * Send message to client to initiate a connection
-         * The sender has already setup a peer connection receiver
+         * Gửi tin nhắn cho client để bắt đầu kết nối
+         * Người gửi đã thiết lập kết nối ngang hàng
          */
 
         // gửi và nhận
