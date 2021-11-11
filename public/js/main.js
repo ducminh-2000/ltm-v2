@@ -12,8 +12,8 @@ let localStream = null;
 let peers = {}
 
 // redirect if not https
-if(location.href.substr(0,5) !== 'https') 
-    location.href = 'https' + location.href.substr(4, location.href.length - 4)
+// if(location.href.substr(0,5) !== 'https') 
+//     location.href = 'http' + location.href.substr(4, location.href.length - 4)
 
 
 //////////// CONFIGURATION //////////////////
@@ -169,39 +169,39 @@ function openPictureMode(el) {
 /**
  * Switches the camera between user and environment. It will just enable the camera 2 cameras not supported.
  */
-function switchMedia() {
-    if (constraints.video.facingMode.ideal === 'user') {
-        constraints.video.facingMode.ideal = 'environment'
-    } else {
-        constraints.video.facingMode.ideal = 'user'
-    }
+// function switchMedia() {
+//     if (constraints.video.facingMode.ideal === 'user') {
+//         constraints.video.facingMode.ideal = 'environment'
+//     } else {
+//         constraints.video.facingMode.ideal = 'user'
+//     }
 
-    const tracks = localStream.getTracks();
+//     const tracks = localStream.getTracks();
 
-    tracks.forEach(function (track) {
-        track.stop()
-    })
+//     tracks.forEach(function (track) {
+//         track.stop()
+//     })
 
-    localVideo.srcObject = null
-    navigator.mediaDevices.getUserMedia(constraints).then(stream => {
+//     localVideo.srcObject = null
+//     navigator.mediaDevices.getUserMedia(constraints).then(stream => {
 
-        for (let socket_id in peers) {
-            for (let index in peers[socket_id].streams[0].getTracks()) {
-                for (let index2 in stream.getTracks()) {
-                    if (peers[socket_id].streams[0].getTracks()[index].kind === stream.getTracks()[index2].kind) {
-                        peers[socket_id].replaceTrack(peers[socket_id].streams[0].getTracks()[index], stream.getTracks()[index2], peers[socket_id].streams[0])
-                        break;
-                    }
-                }
-            }
-        }
+//         for (let socket_id in peers) {
+//             for (let index in peers[socket_id].streams[0].getTracks()) {
+//                 for (let index2 in stream.getTracks()) {
+//                     if (peers[socket_id].streams[0].getTracks()[index].kind === stream.getTracks()[index2].kind) {
+//                         peers[socket_id].replaceTrack(peers[socket_id].streams[0].getTracks()[index], stream.getTracks()[index2], peers[socket_id].streams[0])
+//                         break;
+//                     }
+//                 }
+//             }
+//         }
 
-        localStream = stream
-        localVideo.srcObject = stream
+//         localStream = stream
+//         localVideo.srcObject = stream
 
-        updateButtons()
-    })
-}
+//         updateButtons()
+//     })
+// }
 
 /**
  * Enable screen share
